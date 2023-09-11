@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Agenda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .agenda {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .evento {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .evento .data {
+            font-weight: bold;
+            color: #333;
+        }
+        .evento .hora {
+            margin-left: 10px;
+            color: #555;
+        }
+        .evento .local {
+            margin-top: 5px;
+            color: #777;
+        }
+        .evento .destaque {
+            background-color: #ffc107;
+        }
+        .editar {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+        }
+        .excluir {
+            position: absolute;
+            top: 5px;
+            right: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="agenda" id="agenda">
+        <!-- Eventos serão adicionados aqui -->
+    </div>
+
+    <script>
+        const agenda = document.getElementById('agenda');
+
+        function criarEvento(data, hora, local, destaque) {
+            const evento = document.createElement('div');
+            evento.className = `evento ${destaque ? 'destaque' : ''}`;
+            evento.innerHTML = `
+                <span class="data">${data}</span>
+                <span class="hora">${hora}</span>
+                <div class="local">Local: ${local}</div>
+                <span class="editar" onclick="editarEvento(this)">Editar</span>
+                <span class="excluir" onclick="excluirEvento(this)">Excluir</span>
+            `;
+            agenda.appendChild(evento);
+        }
+
+        function adicionarEvento() {
+            const data = prompt('Digite a data (ex: 2023-09-15):');
+            const hora = prompt('Digite a hora (ex: 10:00 - 11:30):');
+            const local = prompt('Digite o local:');
+            const destaque = confirm('Destacar o evento?');
+
+            criarEvento(data, hora, local, destaque);
+
+            // Armazenar o evento no localStorage
+            const eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+            eventos.push({ data, hora, local, destaque });
+            localStorage.setItem('eventos', JSON.stringify(eventos));
+        }
+
+        function editarEvento(elemento) {
+            const evento = elemento.parentElement;
+            const data = prompt('Editar data:', evento.querySelector('.data').textContent);
+            const hora = prompt('Editar hora:', evento.querySelector('.hora').textContent);
+            const local = prompt('Editar local:', evento.querySelector('.local').textContent.slice(7));
+            const destaque = confirm('Destacar o evento?');
+
+            evento.querySelector('.data').textContent = data;
+            evento.querySelector('.hora').textContent = hora;
+            evento.querySelector('.local').textContent = `Local: ${local}`;
+            evento.classList.toggle('destaque', destaque);
+
+            // Atualizar o evento no localStorage
+            const eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+            const index = Array.from(agenda.children).indexOf(evento);
+            eventos[index] = { data, hora, local, destaque };
+            localStorage.setItem('eventos', JSON.stringify(eventos));
+        }
+
+        function excluirEvento(elemento) {
+            const evento = elemento.parentElement;
+            const index = Array.from(agenda.children).indexOf(evento);
+            evento.remove();
+
+            // Remover o evento do localStorage
+            const eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+            eventos.splice(index, 1);
+            localStorage.setItem('eventos', JSON.stringify(eventos));
+        }
+
+        // Carregar eventos do localStorage ao carregar a página
+        const eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+        eventos.forEach(evento => {
+            criarEvento(evento.data, evento.hora, evento.local, evento.destaque);
+        });
+    </script>
+
+    <button onclick="adicionarEvento()">Adicionar Evento</button>
+</body>
+</html>
